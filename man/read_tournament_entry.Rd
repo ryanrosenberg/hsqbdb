@@ -2,26 +2,57 @@
 % Please edit documentation in R/tournament-parser.R
 \name{read_tournament_entry}
 \alias{read_tournament_entry}
-\title{Title}
+\title{Scrape tournament stats report}
 \usage{
-read_tournament_entry(year, set, site, url, powers, difficulty)
+read_tournament_entry(
+  year = NA,
+  set = NA,
+  site = NA,
+  url,
+  powers = F,
+  difficulty = c("easy", "medium", "regionals", "nationals")
+)
 }
 \arguments{
-\item{year}{}
+\item{year}{The competition year the tournament took place. Preferred format
+is 'XX-XX' (e.g. '20-21' or '16-17').}
 
-\item{set}{}
+\item{set}{The set the tournament used. If set has multiple iterations,
+there is no need to distinguish them (i.e. 'Penn Bowl' should be used instead
+of '2009 Penn Bowl').}
 
-\item{site}{}
+\item{site}{The site of the tournament. Should be selected to distinguish
+between multiple mirrors of the same set, even if they had the nominal same
+site (e.g. two online mirrors, or a school hosting a high school and a college
+mirror).}
 
-\item{url}{}
+\item{url}{A link to a tournament stats report in either SQBS or YellowFruit
+format. Should be in string format.}
 
-\item{powers}{}
+\item{powers}{Whether or not the tournament has powers ('T' or 'F')}
 
-\item{difficulty}{}
+\item{difficulty}{The difficulty of the tournament (one of "easy", "medium",
+"regionals", or "nationals").}
 }
 \value{
-
+Returns a named list of two data frames, one containing player stats
+(conveniently named "player_stats") and the other team stats ("team_stats").
 }
 \description{
-Title
+Scrape tournament stats report
+}
+\examples{
+read_tournament_entry(
+url = 'https://hsquizbowl.org/db/tournaments/7030/stats/combined/games/',
+year = '20-21',
+set = 'ACF Nationals',
+site = 'Northwestern',
+difficulty = 'nationals',
+powers = F
+)
+
+read_tournament_entry(
+url = 'https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/'
+)
+
 }

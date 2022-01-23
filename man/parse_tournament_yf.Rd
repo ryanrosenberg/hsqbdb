@@ -2,18 +2,19 @@
 % Please edit documentation in R/tournament-parser.R
 \name{parse_tournament_yf}
 \alias{parse_tournament_yf}
-\title{Title}
+\title{Wrapper function for scraping a YellowFruit tournament}
 \usage{
 parse_tournament_yf(url, powers)
 }
 \arguments{
-\item{url}{}
+\item{url}{A link to a YellowFruit stats report}
 
-\item{powers}{}
+\item{powers}{Whether or not the tournament has powers ('T' or 'F')}
 }
 \value{
-
+Returns a named list of two data frames, one containing player stats
+(conveniently named "player_stats") and the other team stats ("team_stats").
 }
 \description{
-Title
+Wrapper function for scraping a YellowFruit tournament
 }

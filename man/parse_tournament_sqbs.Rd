@@ -2,18 +2,19 @@
 % Please edit documentation in R/tournament-parser.R
 \name{parse_tournament_sqbs}
 \alias{parse_tournament_sqbs}
-\title{Title}
+\title{Wrapper function for scraping SQBS tournament stats}
 \usage{
 parse_tournament_sqbs(url, powers)
 }
 \arguments{
-\item{url}{}
+\item{url}{A link to a YellowFruit stats report}
 
-\item{powers}{}
+\item{powers}{Whether or not the tournament has powers ('T' or 'F')}
 }
 \value{
-
+Returns a named list of two data frames, one containing player stats
+(conveniently named "player_stats") and the other team stats ("team_stats").
 }
 \description{
-Title
+Wrapper function for scraping SQBS tournament stats
 }

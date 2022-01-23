@@ -2,18 +2,20 @@
 % Please edit documentation in R/parsing-utils.R
 \name{get_game_boxes_yf}
 \alias{get_game_boxes_yf}
-\title{Title}
+\title{Get player box scores from a YellowFruit tournament}
 \usage{
 get_game_boxes_yf(url, powers)
 }
 \arguments{
-\item{url}{}
+\item{url}{A link to a tournament stats report in YellowFruit format.}
 
-\item{powers}{}
+\item{powers}{Whether or not the tournament has powers ('T' or 'F')}
 }
 \value{
-
+Returns a data frame containing player box scores in the same shape as a
+YellowFruit web report
+(i.e. https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/).
 }
 \description{
-Title
+Get player box scores from a YellowFruit tournament
 }

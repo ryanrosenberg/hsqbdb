@@ -2,20 +2,23 @@
 % Please edit documentation in R/tournament-parser.R
 \name{parse_box_yf}
 \alias{parse_box_yf}
-\title{Title}
+\title{Parse the players box score from a YellowFruit tournament}
 \usage{
 parse_box_yf(line, box, powers)
 }
 \arguments{
-\item{line}{}
+\item{line}{The game score line}
 
-\item{box}{}
+\item{box}{The player box score}
 
-\item{powers}{}
+\item{powers}{Whether or not the tournament has powers ('T' or 'F')}
 }
 \value{
-
+Returns a tidy data frame of player stats, with columns for round, game_num,
+team, opponent, player, tossups heard ("tuh", if the tournament did not
+record player tuh this will be NA), powers (if the tournament does not have
+powers this will be NA), tens, negs, and pts.
 }
 \description{
-Title
+Parse the players box score from a YellowFruit tournament
 }
