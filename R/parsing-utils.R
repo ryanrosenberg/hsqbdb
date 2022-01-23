@@ -74,19 +74,18 @@ get_game_boxes_yf <- function(url, powers){
 #' Returns a tidy data frame with columns for player, powers (if the tournament
 #' has powers), tens, negs, and pts.
 #'
-parse_players_line_sqbs <- function(player_line, powers){
-  if (powers == 'T'){
-    cols <- c("player", "powers", "tens", "negs", "pts")
-  }
-  else {
-    cols <- c("player", "tens", "negs", "pts")
-  }
-  player_line %>%
+parse_players_line_sqbs <- function(player_line){
+  temp <- player_line %>%
     stringr::str_split(",\\s") %>%
     purrr::pluck(1) %>%
     dplyr::tibble() %>%
     purrr::set_names("temp") %>%
-    tidyr::separate(temp, cols, sep = '\\s(?=[-0-9])')
+    tidyr::separate(temp, c("player", "score_line"),
+                    sep = '(?<=\\D)\\s(?=[-0-9])') %>%
+    tidyr::separate(score_line, c("powers", "tens", "negs", "pts"),
+                    sep = '\\s(?=[-0-9])', fill = 'left')
+
+  return(temp)
 }
 
 #' Parse game from an SQBS tournament
@@ -107,10 +106,10 @@ parse_players_line_sqbs <- function(player_line, powers){
 #'
 parse_game_sqbs <- function(round, game_num, line,
                             team1_name, team1, team2_name, team2, bonuses){
-  team1_box <- parse_players_line_sqbs(team1, powers) %>%
+  team1_box <- parse_players_line_sqbs(team1) %>%
     dplyr::mutate(round = round, game_num = game_num,
                   team = team1_name, opponent = team2_name, .before = 1)
-  team2_box <- parse_players_line_sqbs(team2, powers) %>%
+  team2_box <- parse_players_line_sqbs(team2) %>%
     dplyr::mutate(round = round, game_num = game_num,
                   team = team2_name, opponent = team1_name, .before = 1)
 
