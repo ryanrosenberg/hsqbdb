@@ -1,0 +1,45 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# hsqbdb
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+This package provides functions for scraping statistics from entries in the hsquizbowl.org tournament database. Currently only supports scraping and not search.
+
+## Installation
+
+You can install the released version of hsqbdb with:
+
+``` r
+devtools::install_github("ryanrosenberg/hsqbdb")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(hsqbdb)
+
+read_tournament_entry(url = 'https://hsquizbowl.org/db/tournaments/7030/stats/combined/games/',
+                      year = '20-21',
+                      set = 'ACF Nationals',
+                      site = 'Northwestern',
+                      difficulty = 'nationals',
+                      powers = F)
+```
+
