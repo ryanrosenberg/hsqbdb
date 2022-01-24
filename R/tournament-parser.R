@@ -177,6 +177,7 @@ parse_tournament_sqbs <- function(url, powers){
     rvest::read_html() %>%
     rvest::html_elements("font") %>%
     rvest::html_text(trim = T) %>%
+    process_issues() %>%
     purrr::discard(~stringr::str_detect(., "by forfeit")) %>%
     dplyr::tibble(team = .) %>%
     dplyr::mutate(round = stringr::str_extract(team, "^Round\\s\\d+"), .before = 1) %>%
@@ -192,7 +193,7 @@ parse_tournament_sqbs <- function(url, powers){
     tidyr::separate(box, c("team1_name", "team1",
                            "team2_name", "team2",
                            "remove", "bonuses"),
-                    sep = ':|(\r\n)|(\n)') %>%
+                    sep = ':|(\r\n)(?!\\t)|(\n)(?!\\t)') %>%
     dplyr::select(-remove) %>%
     purrr::map_df(trimws) %>%
     dplyr::mutate(dplyr::across(c(team1_name, team2_name), ~stringr::str_remove_all(., "\\s\\(D2\\)"))) %>%

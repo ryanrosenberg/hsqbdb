@@ -4,7 +4,7 @@
 \alias{parse_players_line_sqbs}
 \title{Parses player score lines from an SQBS tournament}
 \usage{
-parse_players_line_sqbs(player_line, powers)
+parse_players_line_sqbs(player_line)
 }
 \arguments{
 \item{player_line}{Line of player scores}

@@ -1,3 +1,12 @@
+process_issues <- function(html){
+  clean <- html %>%
+    str_remove_all(', Jr\\.') %>%
+    str_remove_all('\\s\\([^\\)]+\\)') %>%
+    str_remove_all('\\s(?=:)')
+
+  return(clean)
+}
+
 #' Get game score lines from a YellowFruit tournament
 #'
 #' @param url A link to a tournament stats report in YellowFruit format.
@@ -113,69 +122,39 @@ parse_game_sqbs <- function(round, game_num, line,
     dplyr::mutate(round = round, game_num = game_num,
                   team = team2_name, opponent = team1_name, .before = 1)
 
-  if (powers) {
-    player_stats <- bind_rows(team1_box, team2_box) %>%
-      dplyr::mutate(dplyr::across(powers:pts, as.numeric)) %>%
-      dplyr::mutate(tuh = NA, .before = powers)
+  player_stats <- bind_rows(team1_box, team2_box) %>%
+    dplyr::mutate(dplyr::across(powers:pts, as.numeric)) %>%
+    dplyr::mutate(tuh = NA, .before = powers)
 
-    suppressMessages(
-      team_stats <- line %>%
-        stringr::str_split(",\\s") %>%
-        purrr::pluck(1) %>%
-        dplyr::tibble() %>%
-        purrr::set_names("team") %>%
-        dplyr::mutate(team = stringr::str_remove_all(team, "\\sOT$")) %>%
-        tidyr::separate(team, c("team", "total_pts"), sep = "\\s(?=[-0-9]+$)") %>%
-        dplyr::mutate(team = stringr::str_remove_all(team, "\\s\\(UG\\)"),
-                      team = stringr::str_remove_all(team, "\\s\\(D2\\)"),
-                      team = stringr::str_remove_all(team, "\\s\\(DII\\)")) %>%
-        dplyr::mutate(opponent = rev(team)) %>%
-        dplyr::left_join(player_stats %>%
-                           dplyr::group_by(round, game_num, team) %>%
-                           dplyr::summarize(powers = sum(powers),
-                                            tens = sum(tens),
-                                            negs = sum(negs),
-                                            tu_pts = sum(pts),
-                                            bonuses_heard = sum(powers) + sum(tens)),
-                         by = c("team")) %>%
-        dplyr::mutate(total_pts = as.numeric(total_pts)) %>%
-        dplyr::mutate(bonus_points = total_pts - tu_pts, .after = bonuses_heard) %>%
-        dplyr::relocate(total_pts, .after = everything()) %>%
-        dplyr::mutate(dplyr::across(powers:total_pts, as.numeric))
-    )
-  }
-
-  else {
-    player_stats <- dplyr::bind_rows(team1_box, team2_box) %>%
-      dplyr::mutate(dplyr::across(tens:pts, as.numeric)) %>%
-      dplyr::mutate(tuh = NA, powers = NA, .before = tens)
-
-    suppressMessages(
-      team_stats <- line %>%
-        stringr::str_split(",\\s") %>%
-        purrr::pluck(1) %>%
-        dplyr::tibble() %>%
-        purrr::set_names("team") %>%
-        dplyr::mutate(team = stringr::str_remove(team, "\\sOT$")) %>%
-        tidyr::separate(team, c("team", "total_pts"), sep = "\\s(?=[-0-9]+$)") %>%
-        dplyr::mutate(team = stringr::str_remove_all(team, "\\s\\(UG\\)"),
-                      team = stringr::str_remove_all(team, "\\s\\(D2\\)"),
-                      team = stringr::str_remove_all(team, "\\s\\(DII\\)")) %>%
-        dplyr::mutate(opponent = rev(team)) %>%
-        dplyr::left_join(player_stats %>%
-                           dplyr::group_by(round, game_num, team) %>%
-                           dplyr::summarize(tens = sum(tens),
-                                            negs = sum(negs),
-                                            tu_pts = sum(pts),
-                                            bonuses_heard = sum(tens)),
-                         by = c("team")) %>%
-        dplyr::mutate(total_pts = as.numeric(total_pts)) %>%
-        dplyr::mutate(bonus_points = total_pts - tu_pts, .after = bonuses_heard) %>%
-        dplyr::relocate(total_pts, .after = everything()) %>%
-        dplyr::mutate(dplyr::across(tens:total_pts, as.numeric)) %>%
-        dplyr::mutate(powers = NA, .before = tens)
-    )
-  }
+  suppressMessages(
+    team_stats <- line %>%
+      stringr::str_split(",\\s") %>%
+      purrr::pluck(1) %>%
+      dplyr::tibble() %>%
+      purrr::set_names("team") %>%
+      dplyr::mutate(team = stringr::str_remove_all(team, "\\sOT$")) %>%
+      tidyr::separate(team, c("team", "total_pts"), sep = "\\s(?=[-0-9]+$)") %>%
+      dplyr::mutate(team = trimws(team),
+                    team = stringr::str_remove_all(team, "\\s\\(UG\\)"),
+                    team = stringr::str_remove_all(team, "\\s\\(D2\\)"),
+                    team = stringr::str_remove_all(team, "\\s\\(DII\\)")) %>%
+      dplyr::mutate(opponent = rev(team)) %>%
+      dplyr::left_join(player_stats %>%
+                         dplyr::group_by(round, game_num, team) %>%
+                         mutate(powers_safe = ifelse(is.na(powers), 0, powers)) %>%
+                         dplyr::summarize(powers = sum(powers),
+                                          tens = sum(tens),
+                                          negs = sum(negs),
+                                          tu_pts = sum(pts),
+                                          bonuses_heard = sum(powers_safe) +
+                                            sum(tens)),
+                       by = c("team")) %>%
+      dplyr::mutate(total_pts = as.numeric(total_pts)) %>%
+      dplyr::mutate(bonus_points = total_pts - tu_pts,
+                    .after = bonuses_heard) %>%
+      dplyr::relocate(total_pts, .after = everything()) %>%
+      dplyr::mutate(dplyr::across(powers:total_pts, as.numeric))
+  )
 
   return(list(player_stats = player_stats,
               team_stats = team_stats))
