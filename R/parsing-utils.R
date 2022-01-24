@@ -1,3 +1,10 @@
+#' Utility function to handle random stats issues
+#'
+#' @param html Arbitrary string
+#'
+#' @return
+#' Returns cleaned string
+#'
 process_issues <- function(html){
   clean <- html %>%
     str_remove_all(', Jr\\.') %>%
