@@ -9,7 +9,8 @@ process_issues <- function(html){
   clean <- html %>%
     str_remove_all(', Jr\\.') %>%
     str_remove_all('\\s\\([^\\)]+\\)') %>%
-    str_remove_all('\\s(?=:)')
+    str_remove_all('\\s(?=:)') %>%
+    str_replace_all('UC  Davis', 'UC Davis')
 
   return(clean)
 }
@@ -27,6 +28,7 @@ get_game_lines_yf <- function(url){
     rvest::read_html() %>%
     rvest::html_elements("h3 , h2") %>%
     rvest::html_text2() %>%
+    process_issues() %>%
     trimws() %>%
     purrr::discard(~stringr::str_detect(., "by forfeit")) %>%
     purrr::discard(~stringr::str_detect(.,

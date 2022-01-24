@@ -1,4 +1,5 @@
 #' Wrapper function for scraping a YellowFruit tournament
+#'#' Wrapper function for scraping a YellowFruit tournament
 #'
 #' @param url A link to a YellowFruit stats report
 #' @param powers Whether or not the tournament has powers ('T' or 'F')
@@ -34,8 +35,10 @@ parse_tournament_yf <- function(url, powers){
 #'
 parse_box_yf <- function(line, box, powers){
   if(powers){
-    team_1_name <- box[[1,1]]
-    team_2_name <- box[[1,8]]
+    team_1_name <- box[[1,1]] %>%
+      process_issues()
+    team_2_name <- box[[1,8]] %>%
+      process_issues()
 
     team_1_box <- box[2:nrow(box), 1:6] %>%
       purrr::set_names(c("player", "tuh", "powers", "tens", "negs", "pts")) %>%
@@ -54,18 +57,23 @@ parse_box_yf <- function(line, box, powers){
   }
 
   else {
-    team_1_name <- box[[1,1]]
-    team_2_name <- box[[1,7]]
+    team_1_name <- box[[1,1]] %>%
+      process_issues()
+
+    team_2_name <- box[[1,7]] %>%
+      process_issues()
 
     team_1_box <- box[2:nrow(box), 1:5] %>%
       purrr::set_names(c("player", "tuh", "tens", "negs", "pts")) %>%
       tidyr::drop_na() %>%
-      dplyr::mutate(team = team_1_name, opponent = team_2_name, .before = 1)
+      dplyr::mutate(team = trimws(team_1_name), opponent = trimws(team_2_name),
+                    .before = 1)
 
     team_2_box <- box[2:nrow(box), 7:11] %>%
       purrr::set_names(c("player", "tuh", "tens", "negs", "pts")) %>%
       tidyr::drop_na() %>%
-      dplyr::mutate(team = team_2_name, opponent = team_1_name, .before = 1)
+      dplyr::mutate(team = trimws(team_2_name), opponent = trimws(team_1_name),
+                    .before = 1)
 
     player_lines <- dplyr::bind_rows(team_1_box, team_2_box) %>%
       dplyr::mutate(dplyr::across(tens:pts, as.numeric)) %>%
@@ -90,8 +98,11 @@ parse_box_yf <- function(line, box, powers){
 #'
 parse_line_yf <- function(line, box, powers){
   if (powers){
-    team_1_name <- box[[1,1]]
-    team_2_name <- box[[1,8]]
+    team_1_name <- box[[1,1]] %>%
+      process_issues()
+
+    team_2_name <- box[[1,8]] %>%
+      process_issues()
 
     team_1_box <- box[2:nrow(box), 1:6] %>%
       purrr::set_names(c("player", "tuh", "powers", "tens", "negs", "pts")) %>%
@@ -109,18 +120,23 @@ parse_line_yf <- function(line, box, powers){
   }
 
   else {
-    team_1_name <- box[[1,1]]
-    team_2_name <- box[[1,7]]
+    team_1_name <- box[[1,1]] %>%
+      process_issues()
+
+    team_2_name <- box[[1,7]] %>%
+      process_issues()
 
     team_1_box <- box[2:nrow(box), 1:5] %>%
       purrr::set_names(c("player", "tuh", "tens", "negs", "pts")) %>%
       tidyr::drop_na() %>%
-      dplyr::mutate(team = team_1_name, opponent = team_2_name, .before = 1)
+      dplyr::mutate(team = trimws(team_1_name), opponent = trimws(team_2_name),
+                    .before = 1)
 
     team_2_box <- box[2:nrow(box), 7:11] %>%
       purrr::set_names(c("player", "tuh", "tens", "negs", "pts")) %>%
       tidyr::drop_na() %>%
-      dplyr::mutate(team = team_2_name, opponent = team_1_name, .before = 1)
+      dplyr::mutate(team = trimws(team_2_name), opponent = trimws(team_1_name),
+                    .before = 1)
 
     box_tidy <- dplyr::bind_rows(team_1_box, team_2_box) %>%
       dplyr::filter(player == "Total") %>%
