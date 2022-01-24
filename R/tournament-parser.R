@@ -200,7 +200,7 @@ parse_tournament_sqbs <- function(url, powers){
     tidyr::fill(round, .direction = "down") %>%
     filter(stringr::str_detect(team, "^Round\\s\\d+", negate = T)) %>%
     dplyr::group_by(round) %>%
-    dplyr::mutate(type = ifelse(stringr::str_detect(team, ':'), 'box', 'line'),
+    dplyr::mutate(type = ifelse(stringr::str_detect(team, '(?<!Final):'), 'box', 'line'),
                   game_num = rep(1:(n()/2), each = 2), .after = round) %>%
     tidyr::spread(type, team) %>%
     dplyr::ungroup()
