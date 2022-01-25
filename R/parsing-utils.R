@@ -8,8 +8,8 @@
 process_issues <- function(html){
   clean <- html %>%
     str_remove_all(', Jr\\.') %>%
-    str_remove_all(',\\s0\\s0\\s0\\\s0$') %>%
-    str_remove_all(',\\s0\\s0\\\s0$') %>%
+    str_remove_all(',\\s0\\s0\\s0\\s0$') %>%
+    str_remove_all(',\\s0\\s0\\s0$') %>%
     str_replace_all(' - ', '-') %>%
     str_replace_all('(?<=\\s)D2(?=\\s)', '\\(D2\\)') %>%
     str_replace_all('(?<=\\s)UG(?=\\s)', '\\(UG\\)') %>%
