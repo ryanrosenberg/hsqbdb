@@ -8,9 +8,68 @@
 process_issues <- function(html){
   clean <- html %>%
     str_remove_all(', Jr\\.') %>%
+    str_remove_all(',\\s0\\s0\\s0\\\s0$') %>%
+    str_remove_all(',\\s0\\s0\\\s0$') %>%
+    str_replace_all(' - ', '-') %>%
+    str_replace_all('(?<=\\s)D2(?=\\s)', '\\(D2\\)') %>%
+    str_replace_all('(?<=\\s)UG(?=\\s)', '\\(UG\\)') %>%
     str_remove_all('\\s\\([^\\)]+\\)') %>%
+    str_remove_all('-UG') %>%
+    str_remove_all('-DII') %>%
     str_remove_all('\\s(?=:)') %>%
     str_replace_all('UC  Davis', 'UC Davis')
+
+  return(clean)
+}
+
+post_processing <- function(df){
+  clean <- df %>%
+    mutate(set = case_when(paste(year, set, site) == "17-18 SCT Georgia" &
+                             team %in% c("Alabama", "Wofford A",
+                                         "South Carolina A", "Georgia Tech A") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Georgia" ~ "DII SCT",
+                           T ~ set),
+           set = case_when(paste(year, set, site) == "17-18 SCT Georgetown" &
+                             team %in% c("Virginia A", "Maryland A",
+                                         "Johns Hopkins A", "Penn A",
+                                         "Maryland C", "Gettysburg College",
+                                         "Delaware A", "Maryland B") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Georgetown" ~ "DII SCT",
+                           T ~ set),
+           set = case_when(paste(year, set, site) == "17-18 SCT Stanford" &
+                             team %in% c("UC Berkeley A", "UC Berkeley B",
+                                         "UC Berkeley C", "Sacramento State",
+                                         "Stanford A") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Stanford" ~ "DII SCT",
+                           T ~ set),
+           set = case_when(paste(year, set, site) == "16-17 SCT Georgia Tech" &
+                             team %in% c("Georgia Tech", "Georgia A") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Georgia" ~ "DII SCT",
+                           T ~ set),
+           set = case_when(paste(year, set, site) == "16-17 SCT Virginia" &
+                             team %in% c("Duke A", "Maryland A",
+                                         "Johns Hopkins A", "Wofford A",
+                                         "Georgetown A", "William & Mary A",
+                                         "North Carolina State", "Maryland B") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Georgetown" ~ "DII SCT",
+                           T ~ set),
+           set = case_when(paste(year, set, site) == "16-17 SCT Yale" &
+                             team %in% c("Columbia A", "Penn A",
+                                         "MIT A", "Harvard A",
+                                         "Brown A", "NYU A",
+                                         "Princeton A", "MIT B",
+                                         "Columbia B", "Columbia C",
+                                         "Yale", "Penn B") ~
+                             "DI SCT",
+                           paste(year, set, site) == "17-18 SCT Georgetown" ~ "DII SCT",
+                           T ~ set),
+           difficulty = ifelse(set == 'DII SCT' & difficulty == 'regionals',
+                               'easy', difficulty))
 
   return(clean)
 }
@@ -137,11 +196,12 @@ parse_game_sqbs <- function(round, game_num, line,
 
   suppressMessages(
     team_stats <- line %>%
-      stringr::str_split(",\\s") %>%
+      stringr::str_split("(?<=\\d),\\s") %>%
       purrr::pluck(1) %>%
       dplyr::tibble() %>%
       purrr::set_names("team") %>%
-      dplyr::mutate(team = stringr::str_remove_all(team, "\\sOT$")) %>%
+      dplyr::mutate(team = stringr::str_remove_all(team, "\\sOT$"),
+                    team = stringr::str_remove_all(team, "\\sTie$")) %>%
       tidyr::separate(team, c("team", "total_pts"), sep = "\\s(?=[-0-9]+$)") %>%
       dplyr::mutate(team = trimws(team),
                     team = stringr::str_remove_all(team, "\\s\\(UG\\)"),

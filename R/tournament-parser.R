@@ -198,7 +198,9 @@ parse_tournament_sqbs <- function(url, powers){
     dplyr::tibble(team = .) %>%
     dplyr::mutate(round = stringr::str_extract(team, "^Round\\s\\d+"), .before = 1) %>%
     tidyr::fill(round, .direction = "down") %>%
-    filter(stringr::str_detect(team, "^Round\\s\\d+", negate = T)) %>%
+    filter(stringr::str_detect(team, "^Round\\s\\d+", negate = T),
+           stringr::str_detect(team, "\\?\\?\\?", negate = T),
+           stringr::str_detect(team, "viz\\. in prelim bracket", negate = T)) %>%
     dplyr::group_by(round) %>%
     dplyr::mutate(type = ifelse(stringr::str_detect(team, '(?<!Final):'), 'box', 'line'),
                   game_num = rep(1:(n()/2), each = 2), .after = round) %>%
@@ -286,14 +288,16 @@ read_tournament_entry <- function(year = NA,
   if(num_tables < 4){
     stats <- parse_tournament_sqbs(url, powers) %>%
       purrr::map(~dplyr::mutate(., year = year, set = set,
-                                difficulty = difficulty, site = site, .before = 1))
+                                difficulty = difficulty, site = site, .before = 1)) %>%
+      purrr::map(post_processing)
     return(stats)
   }
 
   else {
     stats <- parse_tournament_yf(url, powers) %>%
       purrr::map(~dplyr::mutate(., year = year, set = set,
-                                difficulty = difficulty, site = site, .before = 1))
+                                difficulty = difficulty, site = site, .before = 1)) %>%
+      purrr::map(post_processing)
     return(stats)
   }
 
