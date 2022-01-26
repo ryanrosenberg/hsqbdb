@@ -1,6 +1,6 @@
 Package: hsqbdb
 Title: Hsquizbowl.org Tournament Database Scraper
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("Ryan", "Rosenberg", , "ryanr345@gmail.com", role = c("aut", "cre"))
 Description: Provides functions for scraping statistics from entries in the hsquizbowl.org tournament database. Currently only supports scraping and not search.
