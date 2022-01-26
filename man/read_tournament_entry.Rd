@@ -48,11 +48,12 @@ year = '20-21',
 set = 'ACF Nationals',
 site = 'Northwestern',
 difficulty = 'nationals',
-powers = F
+powers = 'F'
 )
 
 read_tournament_entry(
-url = 'https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/'
+url = 'https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/',
+difficulty = 'medium'
 )
 
 }

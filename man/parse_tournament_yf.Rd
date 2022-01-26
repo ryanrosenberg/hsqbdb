@@ -2,7 +2,8 @@
 % Please edit documentation in R/tournament-parser.R
 \name{parse_tournament_yf}
 \alias{parse_tournament_yf}
-\title{Wrapper function for scraping a YellowFruit tournament}
+\title{Wrapper function for scraping a YellowFruit tournament
+#' Wrapper function for scraping a YellowFruit tournament}
 \usage{
 parse_tournament_yf(url, powers)
 }
@@ -17,4 +18,5 @@ Returns a named list of two data frames, one containing player stats
 }
 \description{
 Wrapper function for scraping a YellowFruit tournament
+#' Wrapper function for scraping a YellowFruit tournament
 }
