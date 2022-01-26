@@ -5,11 +5,11 @@
 \title{Scrape tournament stats report}
 \usage{
 read_tournament_entry(
-  year = NA,
-  set = NA,
-  site = NA,
+  year = "Unknown year",
+  set = "Unknown set",
+  site = "Unknown site",
   url,
-  powers = F,
+  powers = "T",
   difficulty = c("easy", "medium", "regionals", "nationals")
 )
 }
