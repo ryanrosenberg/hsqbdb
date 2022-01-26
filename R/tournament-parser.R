@@ -198,12 +198,12 @@ parse_tournament_sqbs <- function(url, powers){
     dplyr::tibble(team = .) %>%
     dplyr::mutate(round = stringr::str_extract(team, "^Round\\s\\d+"), .before = 1) %>%
     tidyr::fill(round, .direction = "down") %>%
-    filter(stringr::str_detect(team, "^Round\\s\\d+", negate = T),
-           stringr::str_detect(team, "\\?\\?\\?", negate = T),
-           stringr::str_detect(team, "viz\\. in prelim bracket", negate = T)) %>%
+    dplyr::filter(stringr::str_detect(team, "^Round\\s\\d+", negate = T),
+                  stringr::str_detect(team, "\\?\\?\\?", negate = T),
+                  stringr::str_detect(team, "viz\\. in prelim bracket", negate = T)) %>%
     dplyr::group_by(round) %>%
     dplyr::mutate(type = ifelse(stringr::str_detect(team, '(?<!Final):'), 'box', 'line'),
-                  game_num = rep(1:(n()/2), each = 2), .after = round) %>%
+                  game_num = rep(1:(dplyr::n()/2), each = 2), .after = round) %>%
     tidyr::spread(type, team) %>%
     dplyr::ungroup()
 
@@ -260,11 +260,12 @@ parse_tournament_sqbs <- function(url, powers){
 #' set = 'ACF Nationals',
 #' site = 'Northwestern',
 #' difficulty = 'nationals',
-#' powers = F
+#' powers = 'F'
 #' )
 #'
 #' read_tournament_entry(
-#' url = 'https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/'
+#' url = 'https://hsquizbowl.org/db/tournaments/7112/stats/combined/games/',
+#' difficulty = 'medium'
 #' )
 #'
 read_tournament_entry <- function(year = NA,
