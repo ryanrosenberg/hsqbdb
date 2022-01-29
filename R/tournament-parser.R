@@ -115,8 +115,12 @@ parse_line_yf <- function(line, box, powers){
       dplyr::mutate(team = team_2_name, opponent = team_1_name, .before = 1)
 
     box_tidy <- dplyr::bind_rows(team_1_box, team_2_box) %>%
-      dplyr::filter(player == "Total") %>%
-      dplyr::select(-player, -tuh)
+      dplyr::mutate(dplyr::across(powers:pts, as.numeric)) %>%
+      dplyr::group_by(team, opponent) %>%
+      dplyr::summarize(powers = sum(powers),
+                       tens = sum(tens),
+                       negs = sum(negs),
+                       pts = sum(pts))
   }
 
   else {
@@ -139,8 +143,11 @@ parse_line_yf <- function(line, box, powers){
                     .before = 1)
 
     box_tidy <- dplyr::bind_rows(team_1_box, team_2_box) %>%
-      dplyr::filter(player == "Total") %>%
-      dplyr::select(-player, -tuh)
+      dplyr::mutate(dplyr::across(tens:pts, as.numeric)) %>%
+      dplyr::group_by(team, opponent) %>%
+      dplyr::summarize(tens = sum(tens),
+                       negs = sum(negs),
+                       pts = sum(pts))
   }
 
   line_tidy <- line %>%
@@ -195,6 +202,7 @@ parse_tournament_sqbs <- function(url, powers){
     rvest::html_text(trim = T) %>%
     process_issues() %>%
     purrr::discard(~stringr::str_detect(., "by forfeit")) %>%
+    purrr::discard(~stringr::str_detect(., ":$")) %>%
     dplyr::tibble(team = .) %>%
     dplyr::mutate(round = stringr::str_extract(team, "^Round\\s\\d+"), .before = 1) %>%
     tidyr::fill(round, .direction = "down") %>%
@@ -211,7 +219,7 @@ parse_tournament_sqbs <- function(url, powers){
     tidyr::separate(box, c("team1_name", "team1",
                            "team2_name", "team2",
                            "remove", "bonuses"),
-                    sep = ':|(\r\n)(?!\\t)|(\n)(?!\\t)') %>%
+                    sep = ':|(\r\n)(?!\\t)|(\n)(?!\\t)|(\r\\s)(?!\\t)') %>%
     dplyr::select(-remove) %>%
     purrr::map_df(trimws) %>%
     dplyr::mutate(dplyr::across(c(team1_name, team2_name), ~stringr::str_remove_all(., "\\s\\(D2\\)"))) %>%

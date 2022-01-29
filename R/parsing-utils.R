@@ -13,21 +13,48 @@ process_issues <- function(html){
     stringr::str_remove_all('Division II Final:\\s') %>%
     stringr::str_remove_all('Undergraduate Final:\\s') %>%
     stringr::str_remove_all('Overall Final:\\s') %>%
+    stringr::str_remove_all('Undergraduate 3rd place Tiebreaker:\\s') %>%
+    stringr::str_remove_all('Division II Championship:\\s') %>%
+    stringr::str_remove_all('Overall 2nd place Tiebreaker, Leg 1:\\s') %>%
+    stringr::str_remove_all('Overall 2nd place Tiebreaker, Leg 2:\\s') %>%
+    stringr::str_remove_all('\\s\\?\\?\\?\\?') %>%
+    stringr::str_replace_all('\\(D2(?=\\s)', '(D2)') %>%
+    stringr::str_replace_all('\\(Sr\\.\\]', '(Sr.)') %>%
+    stringr::str_replace_all('Brandeis: The Wandering Jew', 'Brandeis') %>%
+    stringr::str_replace_all('Kay Li,', 'Kay Li') %>%
+    stringr::str_replace_all("\\*(?=\\s[-\\d])", ' (UG)') %>%
+    stringr::str_replace_all("\\*(?=:)", ' (UG)') %>%
+    stringr::str_replace_all("\\#(?=\\s[-\\d])", ' (DII)') %>%
+    stringr::str_replace_all("\\#(?=:)", ' (DII)') %>%
+    stringr::str_replace_all("It's Aidan, bitches!", 'Aidan Mehigan') %>%
+    stringr::str_replace_all("Aadith M,", 'Aadith M.') %>%
+    stringr::str_replace_all("Alexias I, Penguin Mascot", 'Alexias I Penguin Mascot') %>%
     stringr::str_replace_all('(?<=,)\\s\\s(?=[\\s\\d]+\r\n)', ' Unknown player ') %>%
     stringr::str_replace_all('Shashank \\(D20', 'Shashank') %>%
+    stringr::str_replace_all('Chicago C:\\s\\s0 2 0 20, MSU A 2 3 0 60, Marianna 0 0 0 0, Austin 0 1 0 10',
+                             'Chicago C: Brett 0 2 0 20, Marianna 2 3 0 60, Samir 0 0 0 0, Baidoo 0 1 0 10') %>%
+    stringr::str_replace_all('Chicago C:\\s\\s0 0 0 0, MSU A 1 4 0 55, Marianna 0 2 0 20, Austin 1 1 0 25',
+                             'Chicago C: Brett 0 0 0 0, Marianna 1 4 0 55, Samir 0 2 0 20, Baidoo 1 1 0 25') %>%
     stringr::str_replace_all('Maryland B 335, UVA 20', 'Maryland B 335, UVA 220') %>%
+    stringr::str_replace_all('Heather Brooks\nHeather Brooks\nHeather Brooks', 'Heather Brooks') %>%
     stringr::str_replace_all('(?<=UF Vicu).(?=a)', 'ñ') %>%
+    stringr::str_replace_all('(?<=zur).(?=ckhaltend)', 'ü') %>%
     stringr::str_replace_all(' - ', '-') %>%
+    stringr::str_replace_all('(?<=\\s)D2$', '\\(D2\\)') %>%
     stringr::str_replace_all('(?<=\\s)D2(?=\\s)', '\\(D2\\)') %>%
-    stringr::str_replace_all('(?<=\\s)D2(?=\\s)', '\\(D2\\)') %>%
+    stringr::str_replace_all('(?<=\\s)D2(?=:)', '\\(D2\\)') %>%
+    stringr::str_replace_all('(?<=\\s)DII(?=:)', '\\(DII\\)') %>%
+    stringr::str_replace_all('(?<=\\s)DII$', '\\(DII\\)') %>%
     stringr::str_replace_all('(?<=\\s)DII(?=\\s)', '\\(DII\\)') %>%
     stringr::str_replace_all('(?<=\\s)UG(?=\\s)', '\\(UG\\)') %>%
     stringr::str_replace_all('\\(null\\)', 'null') %>%
     stringr::str_remove_all('\\s\\([^\\)]+\\)') %>%
+    stringr::str_remove_all('\\(#\\d\\)\\s') %>%
     stringr::str_remove_all('-UG') %>%
     stringr::str_remove_all('-DII') %>%
     stringr::str_remove_all('\\sUG(?=:)') %>%
     stringr::str_remove_all('\\sDII(?=:)') %>%
+    stringr::str_remove_all('\\sD2(?=:)') %>%
     stringr::str_remove_all('\\s(?=:)') %>%
     stringr::str_replace_all('UC  Davis', 'UC Davis')
 
@@ -43,6 +70,26 @@ process_issues <- function(html){
 #'
 post_processing <- function(df){
   clean <- df %>%
+    dplyr::filter(paste(year, set, site) != '11-12 MUT Valencia College' |
+                    team != "NFCC" | opponent != "NFCC") %>%
+    dplyr::filter(paste(year, set, site) != '12-13 Collegiate Novice Rice' |
+                    str_detect(team, "Rice", negate = T) |
+                    str_detect(opponent, "Rice", negate = T)) %>%
+    dplyr::filter(paste(year, set, site) != '13-14 Collegiate Novice Virginia Tech' |
+                    !(team %in% c('Liberty B', 'Wake Forest')) |
+                    !(opponent %in% c('Liberty B', 'Wake Forest'))) %>%
+    dplyr::filter(paste(year, set, site) != '13-14 MUT Valencia College' |
+                    !(team %in% c('Daytona State', 'Valencia Gold')) |
+                    !(opponent %in% c('Daytona State', 'Valencia Gold'))) %>%
+    dplyr::filter(paste(year, set, site) != '14-15 ACF Nationals Michigan' |
+                    !(team %in% c('UCF', 'UCLA')) |
+                    !(opponent %in% c('UCF', 'UCLA'))) %>%
+    dplyr::filter(paste(year, set, site) != '14-15 PADAWAN Chicago' |
+                    !(team %in% c('Northwestern', 'Chicago A')) |
+                    !(opponent %in% c('Northwestern', 'Chicago A'))) %>%
+    dplyr::filter(paste(year, set, site) != '14-15 Penn Bowl Minnesota' |
+                    !(team %in% c('Minnesota B', 'Carleton')) |
+                    !(opponent %in% c('Minnesota B', 'Carleton'))) %>%
     dplyr::mutate(set = dplyr::case_when(paste(year, set, site) == "17-18 SCT Georgia" &
                                            team %in% c("Alabama", "Wofford A",
                                                        "South Carolina A", "Georgia Tech A") ~
@@ -64,11 +111,6 @@ post_processing <- function(df){
                                            "DI SCT",
                                          paste(year, set, site) == "17-18 SCT Stanford" ~ "DII SCT",
                                          T ~ set),
-                  set = dplyr::case_when(paste(year, set, site) == "16-17 SCT Georgia Tech" &
-                                           team %in% c("Georgia Tech", "Georgia A") ~
-                                           "DI SCT",
-                                         paste(year, set, site) == "17-18 SCT Georgia" ~ "DII SCT",
-                                         T ~ set),
                   set = dplyr::case_when(paste(year, set, site) == "16-17 SCT Virginia" &
                                            team %in% c("Duke A", "Maryland A",
                                                        "Johns Hopkins A", "Wofford A",
@@ -85,7 +127,118 @@ post_processing <- function(df){
                                                        "Columbia B", "Columbia C",
                                                        "Yale", "Penn B") ~
                                            "DI SCT",
-                                         paste(year, set, site) == "17-18 SCT Georgetown" ~ "DII SCT",
+                                         paste(year, set, site) == "16-17 SCT Yale" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "15-16 SCT Central Oklahoma" &
+                                           team %in% c("Missouri A", "Truman State A",
+                                                       "Kansas State A", "Central Oklahoma") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "15-16 SCT Central Oklahoma" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "15-16 SCT VCU" &
+                                           team %in% c("Maryland A", "Penn A",
+                                                       "Duke A", "North Carolina",
+                                                       "William & Mary", "Virginia A",
+                                                       "Maryland B", "Georgetown University A",
+                                                       "Liberty A", "Virginia Tech A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "15-16 SCT VCU" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "15-16 SCT Brown" &
+                                           team %in% c("Columbia A", "Harvard A",
+                                                       "Yale A", "Columbia B",
+                                                       "MIT A", "Amherst A",
+                                                       "Dartmouth", "MIT B",
+                                                       "Columbia C", "NYU A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "15-16 SCT Brown" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "15-16 SCT Youngstown State" &
+                                           team %in% c("Michigan A", "Michigan B",
+                                                       "Michigan State A", "Kenyon",
+                                                       "Pitt A", "Carnegie Mellon A",
+                                                       "Case Western A", "Wright State A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "15-16 SCT Youngstown State" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "14-15 SCT UC Berkeley" &
+                                           team %in% c("Stanford A", "UC Berkeley B",
+                                                       "UC Berkeley A", "UC Berkeley C") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "14-15 SCT UC Berkeley" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "14-15 SCT Georgia Tech" &
+                                           team %in% c("Georgia Tech", "Vanderbilt",
+                                                       "South Carolina", "Western Kentucky A",
+                                                       "Louisville A", "Alabama A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "14-15 SCT Georgia Tech" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "13-14 SCT Kentucky" &
+                                           team %in% c("Wright State A", "Louisville B",
+                                                       "Alabama A", "Western Kentucky A",
+                                                       "Louisville A", "Centre A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "13-14 SCT Kentucky" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "13-14 SCT Case Western" &
+                                           team %in% c("Ohio State A", "Ohio State B",
+                                                       "Michigan State A", "Kenyon A",
+                                                       "Michigan State B", "Carnegie Mellon A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "13-14 SCT Case Western" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "13-14 SCT Virginia Tech" &
+                                           team %in% c("Virginia A", "North Carolina A",
+                                                       "Maryland A", "Reynolds CC",
+                                                       "Maryland B", "William & Mary",
+                                                       "VCU", "Virginia B",
+                                                       "South Carolina") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "13-14 SCT Virginia Tech" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "13-14 SCT RPI" &
+                                           team %in% c("Penn A", "Delaware",
+                                                       "Vassar A", "Cornell A",
+                                                       "Penn B", "RPI A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "13-14 SCT RPI" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "13-14 SCT Minnesota" &
+                                           team %in% c("Minneapolis CTC", "Carleton College A",
+                                                       "Marquette", "St. Thomas A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "13-14 SCT Minnesota" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "12-13 SCT Ohio State" &
+                                           team %in% c("Miami-Ohio A", "Case Western A",
+                                                       "Michigan A", "Michigan State A",
+                                                       "Michigan B", "Carnegie Mellon A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "12-13 SCT Ohio State" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "11-12 SCT Princeton" &
+                                           team %in% c("Columbia", "Cornell A",
+                                                       "Maryland A", "Penn A",
+                                                       "Maryland B", "RPI A") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "11-12 SCT Princeton" ~ "DII SCT",
+                                         T ~ set),
+                  set = dplyr::case_when(paste(year, set, site) == "08-09 SCT MIT" &
+                                           team %in% c("Brown", "Princeton",
+                                                       "Harvard A", "Dartmouth A",
+                                                       "Harvard B", "Dartmouth B",
+                                                       "Brandeis", "Harvard C",
+                                                       "Rutgers", "Harvard D",
+                                                       "NYU", "Yale") &
+                                           opponent %in% c("Brown", "Princeton",
+                                                           "Harvard A", "Dartmouth A",
+                                                           "Harvard B", "Dartmouth B",
+                                                           "Brandeis", "Harvard C",
+                                                           "Rutgers", "Harvard D",
+                                                           "NYU", "Yale") ~
+                                           "DI SCT",
+                                         paste(year, set, site) == "08-09 SCT MIT" ~ "DII SCT",
                                          T ~ set),
                   difficulty = ifelse(set == 'DII SCT' & difficulty == 'regionals',
                                       'easy', difficulty))
