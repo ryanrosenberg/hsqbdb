@@ -298,7 +298,8 @@ read_tournament_entry <- function(year = 'Unknown year',
                                   difficulty = c("easy",
                                                  "medium",
                                                  "regionals",
-                                                 "nationals")){
+                                                 "nationals"),
+                                  initial_game_id = 0){
   print(glue::glue('Scraping the {site} site of {year} {set}'))
   tryCatch(test_read <- rvest::read_html(url),
            error = function(c) "Error in reading the HTML file")
@@ -312,6 +313,7 @@ read_tournament_entry <- function(year = 'Unknown year',
     stats <- parse_tournament_sqbs(url, powers) %>%
       purrr::map(~dplyr::mutate(., year = year, set = set,
                                 difficulty = difficulty, site = site, .before = 1)) %>%
+      purrr::map(~dplyr::mutate(., game_id = game_id + initial_game_id)) %>%
       purrr::map(post_processing)
     return(stats)
   }
@@ -320,6 +322,7 @@ read_tournament_entry <- function(year = 'Unknown year',
     stats <- parse_tournament_yf(url, powers) %>%
       purrr::map(~dplyr::mutate(., year = year, set = set,
                                 difficulty = difficulty, site = site, .before = 1)) %>%
+      purrr::map(~dplyr::mutate(., game_id = game_id + initial_game_id)) %>%
       purrr::map(post_processing)
     return(stats)
   }
