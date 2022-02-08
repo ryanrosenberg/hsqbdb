@@ -353,13 +353,13 @@ parse_players_line_sqbs <- function(player_line){
 #' Returns a named list of two data frames, one containing player stats
 #' (conveniently named "player_stats") and the other team stats ("team_stats").
 #'
-parse_game_sqbs <- function(round, game_num, line,
+parse_game_sqbs <- function(game_id, round, game_num, line,
                             team1_name, team1, team2_name, team2, bonuses){
   team1_box <- parse_players_line_sqbs(team1) %>%
-    dplyr::mutate(round = round, game_num = game_num,
+    dplyr::mutate(game_id = game_id, round = round, game_num = game_num,
                   team = team1_name, opponent = team2_name, .before = 1)
   team2_box <- parse_players_line_sqbs(team2) %>%
-    dplyr::mutate(round = round, game_num = game_num,
+    dplyr::mutate(game_id = game_id, round = round, game_num = game_num,
                   team = team2_name, opponent = team1_name, .before = 1)
 
   player_stats <- dplyr::bind_rows(team1_box, team2_box) %>%
@@ -391,10 +391,11 @@ parse_game_sqbs <- function(round, game_num, line,
                                             sum(tens)),
                        by = c("team")) %>%
       dplyr::mutate(total_pts = as.numeric(total_pts)) %>%
-      dplyr::mutate(bonus_points = total_pts - tu_pts,
+      dplyr::mutate(bonus_pts = total_pts - tu_pts,
                     .after = bonuses_heard) %>%
       dplyr::relocate(total_pts, .after = everything()) %>%
-      dplyr::mutate(dplyr::across(powers:total_pts, as.numeric))
+      dplyr::mutate(dplyr::across(powers:total_pts, as.numeric)) %>%
+      dplyr::mutate(game_id = game_id, .before = 1)
   )
 
   return(list(player_stats = player_stats,

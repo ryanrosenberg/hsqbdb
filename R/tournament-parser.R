@@ -14,8 +14,18 @@ parse_tournament_yf <- function(url, powers){
 
   game_boxes <- get_game_boxes_yf(url, powers)
 
-  player_stats <- purrr::map2_dfr(game_lines, game_boxes, parse_box_yf, powers)
-  team_stats <- purrr::map2_dfr(game_lines, game_boxes, parse_line_yf, powers)
+  player_stats <- purrr::pmap_dfr(list(
+    game_lines,
+    game_boxes,
+    1:length(game_lines)
+  ),
+  parse_box_yf, powers)
+  team_stats <- purrr::pmap_dfr(list(
+    game_lines,
+    game_boxes,
+    1:length(game_lines)
+  ),
+  parse_line_yf, powers)
 
   return(list(player_stats = player_stats,
               team_stats = team_stats))
@@ -33,7 +43,7 @@ parse_tournament_yf <- function(url, powers){
 #' record player tuh this will be NA), powers (if the tournament does not have
 #' powers this will be NA), tens, negs, and pts.
 #'
-parse_box_yf <- function(line, box, powers){
+parse_box_yf <- function(line, box, game_id, powers){
   if(powers){
     team_1_name <- box[[1,1]] %>%
       process_issues()
@@ -78,7 +88,8 @@ parse_box_yf <- function(line, box, powers){
     player_lines <- dplyr::bind_rows(team_1_box, team_2_box) %>%
       dplyr::mutate(dplyr::across(tens:pts, as.numeric)) %>%
       dplyr::mutate(powers = NA, .before = tens) %>%
-      dplyr::mutate(round = line$round, game_num = line$game_num, .before = 1) %>%
+      dplyr::mutate(game_id = game_id, round = line$round,
+                    game_num = line$game_num, .before = 1) %>%
       dplyr::filter(player != "Total")
   }
 
@@ -96,7 +107,7 @@ parse_box_yf <- function(line, box, powers){
 #' team, opponent, tossups heard ("tuh"), powers (if the tournament does not have
 #' powers this will be NA), tens, negs, bonuses_heard, bonus_pts, and total_pts.
 #'
-parse_line_yf <- function(line, box, powers){
+parse_line_yf <- function(line, box, game_id, powers){
   if (powers){
     team_1_name <- box[[1,1]] %>%
       process_issues()
@@ -167,8 +178,9 @@ parse_line_yf <- function(line, box, powers){
       dplyr::rename(tu_pts = pts) %>%
       dplyr::mutate(tu_pts = as.numeric(tu_pts),
                     bonuses_heard = powers + tens,
-                    bonus_points = total_pts - tu_pts,
-                    .before = total_pts)
+                    bonus_pts = total_pts - tu_pts,
+                    .before = total_pts) %>%
+      dplyr::mutate(game_id, .before = 1)
   }
 
   else {
@@ -178,9 +190,10 @@ parse_line_yf <- function(line, box, powers){
       dplyr::rename(tu_pts = pts) %>%
       dplyr::mutate(tu_pts = as.numeric(tu_pts),
                     bonuses_heard = tens,
-                    bonus_points = total_pts - tu_pts,
+                    bonus_pts = total_pts - tu_pts,
                     .before = total_pts) %>%
-      dplyr::mutate(powers = NA, .before = tens)
+      dplyr::mutate(powers = NA, .before = tens) %>%
+      dplyr::mutate(game_id, .before = 1)
   }
 
   return(full_line)
@@ -227,7 +240,8 @@ parse_tournament_sqbs <- function(url, powers){
     dplyr::mutate(dplyr::across(c(team1_name, team2_name), ~stringr::str_remove_all(., "\\s\\(DII\\)"))) %>%
     dplyr::mutate(dplyr::across(c(team1, team2), ~stringr::str_remove_all(., "\\s\\(UG\\)"))) %>%
     dplyr::mutate(dplyr::across(c(team1, team2), ~stringr::str_remove_all(., "\\s\\(D2\\)"))) %>%
-    dplyr::mutate(dplyr::across(c(team1, team2), ~stringr::str_remove_all(., "\\s\\(DII\\)")))
+    dplyr::mutate(dplyr::across(c(team1, team2), ~stringr::str_remove_all(., "\\s\\(DII\\)"))) %>%
+    dplyr::mutate(game_id = row_number(), .before = 1)
 
   all_stats <- purrr::pmap(all, parse_game_sqbs)
   player_stats <- purrr::map_df(all_stats, "player_stats")
